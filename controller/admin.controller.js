@@ -66,6 +66,9 @@ export const login = async (req, res) => {
 
     // return res.status(200).json({message:"Working"});
 
+    console.log(email, "       ", pass);
+    console.log("request received");
+
     const admin = await adminModel.findOne({ email: email });
 
 
