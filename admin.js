@@ -18,17 +18,17 @@ app.use(cookieParser());
 
 
 
-// const corsOptions = {
-//   origin: [
-//     process.env.DASHBOARD_URL,
-//      process.env.DASHBOARD_URL_PORT,
-//   ],
-//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-//   allowedHeaders: ["Content-Type", "Authorization"],
-//   credentials: true
-// };
+const corsOptions = {
+  origin: [
+    process.env.DASHBOARD_URL,
+    process.env.DASHBOARD_URL_PORT,
+  ],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+};
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
