@@ -273,6 +273,7 @@ const fetchAppointments = async () => {
   try {
     console.log("contacting appointment microservice");
     const res = await axios.get(`${process.env.APPOINTMENT_URL}/admin/allAppointment`);
+    console.log(res);
     console.log("working correctly");
     return res.data.message; // Now this actually returns data
   } catch (error) {
