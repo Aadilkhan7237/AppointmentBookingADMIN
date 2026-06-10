@@ -68,7 +68,7 @@ export const dashboardInfo = async (req, res) => {
   }
 };
 
-// ✅ Helper function – returns only data (no req/res)
+//  Helper function – returns only data (no req/res)
 const getChartData = async () => {
   try {
     const startOfWeek = new Date();
@@ -78,20 +78,23 @@ const getChartData = async () => {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 7);
 
+    console.log(startOfWeek);
+    console.log(endOfWeek);
+
     const data = await appointmentModel.aggregate([
       {
         $match: {
-          date: { $gte: startOfWeek, $lt: endOfWeek },
+          dateBooked: { $gte: startOfWeek, $lt: endOfWeek },
         },
       },
       {
         $group: {
-          _id: { $dayOfWeek: "$date" }, // 1=Sunday, 7=Saturday
+          _id: { $dayOfWeek: "$dateBooked" }, // ✅ correct
           totalBookings: { $sum: 1 },
         },
       },
       {
-        $sort: { "_id": 1 },
+        $sort: { _id: 1 },
       },
     ]);
 
@@ -100,15 +103,16 @@ const getChartData = async () => {
     const formatted = Array(7)
       .fill(0)
       .map((_, i) => {
-        const found = data.find((d) => d._id === i + 1);
+        const found = data.find((d) => d._id === i + 2);
         return found ? found.totalBookings : 0;
       });
 
+    console.log("Yielded Data ", formatted);
     return {
       data: formatted,
     };
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return { data: [] };
   }
 };
@@ -286,7 +290,9 @@ const fetchUsers = async () => {
   try {
     console.log("contacting user microservice");
     const res = await axios.get(`${process.env.USER_URL}/admin/allUser`);
+    console.log(res);
     console.log("working correctly");
+
     return res.data.message; // Now this actually returns data
   } catch (error) {
     return null;
