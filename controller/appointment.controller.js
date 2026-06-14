@@ -71,20 +71,26 @@ export const dashboardInfo = async (req, res) => {
 //  Helper function – returns only data (no req/res)
 const getChartData = async () => {
   try {
-    const startOfWeek = new Date();
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Sunday
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - daysToMonday); // This Monday
     startOfWeek.setHours(0, 0, 0, 0);
 
     const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // This Sunday
+    endOfWeek.setHours(23, 59, 59, 999);
 
-    console.log(startOfWeek);
-    console.log(endOfWeek);
+    // console.log(startOfWeek);
+    // console.log(endOfWeek);
 
     const data = await appointmentModel.aggregate([
       {
         $match: {
-          dateBooked: { $gte: startOfWeek, $lt: endOfWeek },
+          dateBooked: { $gt: startOfWeek, $lte: endOfWeek },
         },
       },
       {
@@ -98,12 +104,15 @@ const getChartData = async () => {
       },
     ]);
 
+    // console.log(data);
+
     // Map Mongo day numbers → readable labels
     // const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const formatted = Array(7)
       .fill(0)
       .map((_, i) => {
-        const found = data.find((d) => d._id === i + 2);
+        const mongoDay = i === 6 ? 1 : i + 2;
+        const found = data.find((d) => d._id === mongoDay);
         return found ? found.totalBookings : 0;
       });
 

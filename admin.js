@@ -49,8 +49,14 @@ app.use("/admin", adminRouter);
 
 
 
-app.listen(PORT, async () => {
-  await mongoose.connect(MONGO_URL);
-  console.log("Admin DB connected");
-  console.log(`Admin services listening on PORT ${PORT}`);
-})
+mongoose.connect(MONGO_URL)
+  .then(() => {
+    console.log("Admin DB connected");
+    app.listen(PORT, () => {
+      console.log(`Admin services listening on PORT ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB:", err.message);
+    process.exit(1);
+  });
