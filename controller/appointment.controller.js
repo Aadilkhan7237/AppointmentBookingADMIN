@@ -71,33 +71,48 @@ export const dashboardInfo = async (req, res) => {
 //  Helper function – returns only data (no req/res)
 const getChartData = async () => {
   try {
-    const today = new Date();
-    const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+     const now = new Date();
 
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+// Convert current time to IST
+const istNow = new Date(
+  now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+);
 
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - daysToMonday); // This Monday
-    startOfWeek.setHours(0, 0, 0, 0);
+// Start of week in IST
+const startOfWeekIST = new Date(istNow);
+startOfWeekIST.setDate(startOfWeekIST.getDate() - startOfWeekIST.getDay());
+startOfWeekIST.setHours(0, 0, 0, 0);
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // This Sunday
-    endOfWeek.setHours(23, 59, 59, 999);
+// End of week in IST
+const endOfWeekIST = new Date(startOfWeekIST);
+endOfWeekIST.setDate(endOfWeekIST.getDate() + 7);
 
-    // console.log(startOfWeek);
+// Convert IST boundaries back to UTC
+const startOfWeek = new Date(
+  startOfWeekIST.getTime() - 5.5 * 60 * 60 * 1000
+);
+
+const endOfWeek = new Date(
+  endOfWeekIST.getTime() - 5.5 * 60 * 60 * 1000
+);
+
+     //console.log(startOfWeek);
     // console.log(endOfWeek);
 
     const data = await appointmentModel.aggregate([
       {
         $match: {
-          dateBooked: { $gt: startOfWeek, $lte: endOfWeek },
+          dateBooked: { $gte: startOfWeek, $lt: endOfWeek },
         },
       },
       {
-        $group: {
-          _id: { $dayOfWeek: "$dateBooked" }, // ✅ correct
-          totalBookings: { $sum: 1 },
-        },
+         $group: {
+    _id: {
+      $dayOfWeek: {date: "$dateBooked",timezone: "Asia/Kolkata"
+      }
+    },
+    totalBookings: { $sum: 1 }
+  },
       },
       {
         $sort: { _id: 1 },
